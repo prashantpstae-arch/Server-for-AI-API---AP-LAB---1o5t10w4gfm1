@@ -1,59 +1,39 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const axios = require("axios");
-
-dotenv.config();
-
 const app = express();
 const port = 3000;
-
+dotenv.config();
 app.use(express.json());
-
-// Health check
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-// POST /api/gemini/prompt/send
 app.post("/api/gemini/prompt/send", async (req, res) => {
   const { prompt } = req.body;
-
-  // Client Error Response (400)
-  if (!prompt || typeof prompt !== "string" || prompt.trim() === "") {
+  if (!prompt || typeof prompt !== "string") {
     return res.status(400).json({ message: "Please send a valid prompt" });
   }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  const url =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
-    apiKey;
-
   try {
-    const response = await axios.post(
-      url,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.API_KEY}`,
       {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method:"POST",
+        body:JSON.stringify({
         contents: [
           {
             parts: [{ text: prompt }],
           },
         ],
-      },
-      { headers: { "Content-Type": "application/json" } }
+      })
+      }
     );
-
-    // Success Response (200)
-    return res.status(200).json({ response: response.data });
-
+      const data = await response.json();
+      console.log("Gemini API response:", data);
+      res.status(200).json({ response: data });
   } catch (err) {
-    return res.status(200).json({
-      response: {}
-    });
+    res.status(500)
   }
 });
-
 app.listen(port, () => {
-  console.log(`app listening on port ${port}`);
+  console.log(`app listening on port ${port}`)
 });
-
 module.exports = { app };
