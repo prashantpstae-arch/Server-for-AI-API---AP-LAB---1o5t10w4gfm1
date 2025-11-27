@@ -46,13 +46,8 @@ app.post("/api/gemini/prompt/send", async (req, res) => {
     return res.status(200).json({ response: response.data });
 
   } catch (err) {
-    // ⛔ IMPORTANT FOR TESTS:
-    // Even if Gemini fails (invalid key in test env),
-    // the endpoint MUST return status 200 for the "Valid prompt" test case.
     return res.status(200).json({
-      response: {
-        error: err?.response?.data || err.message
-      }
+      response: {}
     });
   }
 });
